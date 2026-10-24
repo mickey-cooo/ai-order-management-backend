@@ -49,23 +49,46 @@ func VerifyPassword(password, encoded string) (bool, error) {
 	if len(parts) != 6 || parts[1] != "argon2id" {
 		return false, ErrInvalidHash
 	}
+
 	var version int
 	if _, err := fmt.Sscanf(parts[2], "v=%d", &version); err != nil || version != argon2.Version {
 		return false, ErrInvalidHash
 	}
-	var memory, time uint32
+
+	// Cost settings come from the stored hash, so old hashes still verify after the defaults change.
+	var memory, iterations uint32
 	var threads uint8
-	if _, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &time, &threads); err != nil || time < 1 || threads < 1 {
+	if _, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &iterations, &threads); err != nil || iterations < 1 || threads < 1 {
 		return false, ErrInvalidHash
 	}
+
 	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
 	if err != nil {
 		return false, ErrInvalidHash
 	}
-	want, err := base64.RawStdEncoding.DecodeString(parts[5])
-	if err != nil || len(want) == 0 {
+	storedKey, err := base64.RawStdEncoding.DecodeString(parts[5])
+	if err != nil || len(storedKey) == 0 {
 		return false, ErrInvalidHash
 	}
-	got := argon2.IDKey(preHash(password), salt, time, memory, threads, uint32(len(want)))
-	return subtle.ConstantTimeCompare(got, want) == 1, nil
+
+	// Key length comes from the stored key, not argonKeyLen.
+	newKey := argon2.IDKey(preHash(password), salt, iterations, memory, threads, uint32(len(storedKey)))
+
+	// Constant time, so timing does not leak how many bytes matched.
+	return subtle.ConstantTimeCompare(newKey, storedKey) == 1, nil
+}
+
+// ComparePassword reports whether password matches hashedPassword. A malformed hash counts as no match.
+func ComparePassword(hashedPassword, password string) bool {
+	ok, err := VerifyPassword(password, hashedPassword)
+	return err == nil && ok
+}
+
+// GeneratePassword returns a random URL-safe password of the given length.
+func GeneratePassword(length int) (string, error) {
+	b := make([]byte, length) // length bytes encode to ~1.33*length chars, so truncating is safe
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b)[:length], nil
 }

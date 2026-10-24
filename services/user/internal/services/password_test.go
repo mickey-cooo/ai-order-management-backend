@@ -2,6 +2,22 @@ package services
 
 import "testing"
 
+func TestComparePassword(t *testing.T) {
+	h, err := HashPassword("s3cret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ComparePassword(h, "s3cret") {
+		t.Fatal("correct password rejected")
+	}
+	if ComparePassword(h, "wrong") {
+		t.Fatal("wrong password accepted")
+	}
+	if ComparePassword("garbage", "s3cret") {
+		t.Fatal("malformed hash accepted")
+	}
+}
+
 func TestHashAndVerifyPassword(t *testing.T) {
 	h, err := HashPassword("s3cret")
 	if err != nil {
