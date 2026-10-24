@@ -1,0 +1,23 @@
+package store
+
+import (
+	"fmt"
+	"os"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+
+	"github.com/Phanupong-Phurahong/ai-order-management-backend/internal/models"
+)
+
+func Connect() (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_SSLMODE"))
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+}
+
+// Migrate order does not matter: GORM sorts tables by FK dependency.
+func Migrate(db *gorm.DB) error {
+	return db.AutoMigrate(&models.Permission{}, &models.Role{}, &models.User{})
+}
