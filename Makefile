@@ -1,5 +1,5 @@
 COMPOSE = docker compose -f deploy/local/docker-compose.yml
-DIR = services/$(s)
+DIR = $(if $(filter gateway,$(s)),gateway,services/$(s))
 
 # run loads the service's own .env (docker targets must not inherit it); dev gets it from env_files in .air.toml
 ifneq ($(filter run,$(MAKECMDGOALS)),)
