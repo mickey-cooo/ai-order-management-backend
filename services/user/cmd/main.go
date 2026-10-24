@@ -5,7 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/Phanupong-Phurahong/ai-order-management-backend/internal/store"
+	"github.com/Phanupong-Phurahong/ai-order-management-backend/services/user/internal/store"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/Phanupong-Phurahong/ai-order-management-backend
+module github.com/Phanupong-Phurahong/ai-order-management-backend/services/user
 
 go 1.26.6
 

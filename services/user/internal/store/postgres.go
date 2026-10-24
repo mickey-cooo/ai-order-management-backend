@@ -7,7 +7,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/Phanupong-Phurahong/ai-order-management-backend/internal/models"
+	"github.com/Phanupong-Phurahong/ai-order-management-backend/services/user/internal/schema"
 )
 
 func Connect() (*gorm.DB, error) {
@@ -19,5 +19,5 @@ func Connect() (*gorm.DB, error) {
 
 // Migrate order does not matter: GORM sorts tables by FK dependency.
 func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(&models.Permission{}, &models.Role{}, &models.User{})
+	return db.AutoMigrate(&schema.Permission{}, &schema.Role{}, &schema.User{})
 }
