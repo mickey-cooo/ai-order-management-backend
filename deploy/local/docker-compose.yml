@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:16
+    environment: # superuser creds are infra, not a service's: read from deploy/local/.env
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in deploy/local/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/local/.env}
+      POSTGRES_DB: ai-order
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      retries: 10
+
+  user:
+    build:
+      context: ../.. # repo root, so pkg/ is included
+      dockerfile: services/user/Dockerfile
+    env_file:
+      - ../../services/user/.env
+    environment: # .env targets host runs; inside compose, services are reached by name
+      DB_HOST: postgres
+      PORT: "8081"
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  orders:
+    build:
+      context: ../..
+      dockerfile: services/orders/Dockerfile
+    env_file:
+      - ../../services/orders/.env
+    environment:
+      PORT: "8082"
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks:
+      - backend
+
+  product:
+    build:
+      context: ../..
+      dockerfile: services/product/Dockerfile
+    env_file:
+      - ../../services/product/.env
+    environment:
+      PORT: "8084"
+    ports:
+      - "127.0.0.1:8084:8084"
+    networks:
+      - backend
+
+  supplier:
+    build:
+      context: ../..
+      dockerfile: services/supplier/Dockerfile
+    env_file:
+      - ../../services/supplier/.env
+    environment:
+      PORT: "8085"
+    ports:
+      - "127.0.0.1:8085:8085"
+    networks:
+      - backend
+
+  ai:
+    build:
+      context: ../..
+      dockerfile: services/ai/Dockerfile
+    env_file:
+      - ../../services/ai/.env
+    environment:
+      PORT: "8083"
+    ports:
+      - "127.0.0.1:8083:8083"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pgdata:
