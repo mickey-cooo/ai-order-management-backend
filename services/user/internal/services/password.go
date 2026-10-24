@@ -14,14 +14,20 @@ import (
 )
 
 const (
-	argonTime    = 1
-	argonMemory  = 64 * 1024 // KiB
-	argonThreads = 4
-	argonKeyLen  = 32
-	saltLen      = 16
+	argonTime          = 1
+	argonMemory        = 64 * 1024 // KiB
+	argonThreads       = 4
+	argonKeyLen        = 32
+	saltLen            = 16
+	maxArgonMemory     = 256 * 1024 // KiB
+	maxArgonIterations = 10
+	minGeneratedLen    = 12
 )
 
-var ErrInvalidHash = errors.New("invalid password hash format")
+var (
+	ErrInvalidHash   = errors.New("invalid password hash format")
+	ErrPasswordShort = errors.New("generated password length too short")
+)
 
 // preHash is the sha1 step: password -> hex(sha1). Argon2id then hashes the hex string.
 func preHash(password string) []byte {
@@ -58,7 +64,7 @@ func VerifyPassword(password, encoded string) (bool, error) {
 	// Cost settings come from the stored hash, so old hashes still verify after the defaults change.
 	var memory, iterations uint32
 	var threads uint8
-	if _, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &iterations, &threads); err != nil || iterations < 1 || threads < 1 {
+	if _, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &memory, &iterations, &threads); err != nil || iterations < 1 || iterations > maxArgonIterations || memory > maxArgonMemory || threads < 1 {
 		return false, ErrInvalidHash
 	}
 
@@ -86,6 +92,9 @@ func ComparePassword(hashedPassword, password string) bool {
 
 // GeneratePassword returns a random URL-safe password of the given length.
 func GeneratePassword(length int) (string, error) {
+	if length < minGeneratedLen {
+		return "", ErrPasswordShort
+	}
 	b := make([]byte, length) // length bytes encode to ~1.33*length chars, so truncating is safe
 	if _, err := rand.Read(b); err != nil {
 		return "", err

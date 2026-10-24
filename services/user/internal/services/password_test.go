@@ -33,9 +33,27 @@ func TestHashAndVerifyPassword(t *testing.T) {
 	if h == h2 {
 		t.Fatal("salt not random")
 	}
-	for _, bad := range []string{"garbage", "$argon2id$v=19$m=65536,t=0,p=4$c2FsdA$a2V5", "$argon2id$v=19$m=65536,t=1,p=0$c2FsdA$a2V5"} {
+	for _, bad := range []string{
+		"garbage",
+		"$argon2id$v=19$m=65536,t=0,p=4$c2FsdA$a2V5",
+		"$argon2id$v=19$m=65536,t=1,p=0$c2FsdA$a2V5",
+		"$argon2id$v=19$m=4294967295,t=1,p=4$c2FsdA$a2V5",
+		"$argon2id$v=19$m=65536,t=4294967295,p=4$c2FsdA$a2V5",
+	} {
 		if _, err := VerifyPassword("x", bad); err != ErrInvalidHash {
 			t.Fatalf("%q: want ErrInvalidHash, got %v", bad, err)
 		}
+	}
+}
+
+func TestGeneratePassword(t *testing.T) {
+	for _, n := range []int{-1, 0, minGeneratedLen - 1} {
+		if _, err := GeneratePassword(n); err != ErrPasswordShort {
+			t.Fatalf("length %d: want ErrPasswordShort, got %v", n, err)
+		}
+	}
+	p, err := GeneratePassword(minGeneratedLen)
+	if err != nil || len(p) != minGeneratedLen {
+		t.Fatalf("got %q err=%v", p, err)
 	}
 }
