@@ -1,0 +1,11 @@
+# Run from this directory: cd services/product && air   (or: make dev s=product from the repo root)
+root = "."
+tmp_dir = "tmp"
+env_files = [".env"]
+
+[build]
+cmd = "go build -o ./tmp/main ./cmd"
+entrypoint = ["./tmp/main"]
+include_dir = ["../../pkg"]
+include_ext = ["go"]
+exclude_dir = ["tmp"]
