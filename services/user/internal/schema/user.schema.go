@@ -1,11 +1,9 @@
 package schema
 
-import "gorm.io/gorm"
-
 type User struct {
-	gorm.Model
-	FirstName *string  `gorm:"type:varchar(50)"`
-	LastName  *string  `gorm:"type:varchar(50)"`
+	Base
+	FirstName string  `gorm:"type:varchar(50)"`
+	LastName  string  `gorm:"type:varchar(50)"`
 	Email     string   `gorm:"type:varchar(100);uniqueIndex;not null"`
 	Password  *string  `gorm:"type:varchar(255)"`
 	Status    Status   `gorm:"type:varchar(20);default:'active';not null;check:chk_users_status,status IN ('active','inactive','deleted','locked')"`
