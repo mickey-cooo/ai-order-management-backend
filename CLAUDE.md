@@ -11,3 +11,7 @@
 - Never push without asking first.
 - Ask user before every push. Push only after user replies "go ahead".
 - Approval applies to that one push only. Ask again next time.
+
+## Code Comments
+- One line per comment. No multi-line comments, no block comments.
+- Explain why, not what. Skip comments when the code is clear.
