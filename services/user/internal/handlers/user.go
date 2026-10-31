@@ -35,6 +35,15 @@ func (h *UserHandler) GetById(c fiber.Ctx) error {
 	})
 }
 
+// GetListByIds godoc
+//
+//	@Summary		Get users by ids
+//	@Description	Returns the users matching the comma-separated UUIDs as {"status":200,"data":[UserResponse]}, an empty list when none match; a failure returns {"status":400,"error":"..."} with HTTP 200.
+//	@Tags			users
+//	@Produce		json
+//	@Param			ids	query		string	true	"comma-separated user UUIDs"
+//	@Success		200	{object}	map[string]interface{}
+//	@Router			/users [get]
 func (h *UserHandler) GetListByIds(c fiber.Ctx) error {
 	// FieldsFunc drops empty parts so "?ids=" yields no ids, not [""]
 	ids := strings.FieldsFunc(c.Query("ids"), func(r rune) bool { return r == ',' })
