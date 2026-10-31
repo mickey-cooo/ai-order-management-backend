@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strings"
+
 	"github.com/Phanupong-Phurahong/ai-order-management-backend/services/user/internal/services"
 	"github.com/gofiber/fiber/v3"
 )
@@ -30,5 +32,22 @@ func (h *UserHandler) GetById(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": fiber.StatusOK,
 		"data":   u,
+	})
+}
+
+func (h *UserHandler) GetListByIds(c fiber.Ctx) error {
+	// FieldsFunc drops empty parts so "?ids=" yields no ids, not [""]
+	ids := strings.FieldsFunc(c.Query("ids"), func(r rune) bool { return r == ',' })
+	users, err := h.svc.GetUserListByIds(c.Context(), ids)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status": fiber.StatusBadRequest,
+			"error":  err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": fiber.StatusOK,
+		"data":   users,
 	})
 }

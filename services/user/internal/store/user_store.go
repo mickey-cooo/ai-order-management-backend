@@ -15,6 +15,12 @@ func (s *UserStore) GetById(id string) (schema.User, error) {
 	return user, err
 }
 
+func (s *UserStore) GetListByIds(ids []string) ([]schema.User, error) {
+	var users []schema.User
+	err := s.db.Where("id IN ?", ids).Find(&users).Error
+	return users, err
+}
+
 func (s *UserStore) GetByEmail(email string) (schema.User, error) {
 	var user schema.User
 	err := s.db.Where("email = ?", email).First(&user).Error
